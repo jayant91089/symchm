@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is an automatically generated file. -->
+<Chapter Label="Chapter_Introduction">
+<Heading>Introduction</Heading>
+
+symchm is a GAP package that for projeting polyhedra using Convex Hull Method (chm). The 'sym' prefix follows from the fact that symchm also supports specifying a group of
+symmetries of the projection polyhedron. Currently, the main supported class of symmetries is the permutations of co-ordinate dimensions under which the projection is
+known to be fixed (stabilized setwise). The algorithm CHM proceeds by solving a series of linear programs (LPs)
+over the input polytope <Math>P</Math>, recovering a vertex of projection per LP solved. It also maintains an inequality description of
+an inner bound of projection, associated with the convex hull of the subset of vertices found. This description is updated every time a new vertex is found.
+symchm exploits symmetry in several different ways viz. by solving roughly the number of LPs equal to the number orbits of the symmetry group on vertices of projection and
+by using symmetric updates of the inequality description. The aforementioned LPs are solved by an external program
+Qsopt<Math>\_</Math>ex <Cite Key="qs"/> which is a linear program solver
+by Applegate,Cook,Dash and Espinoza. symchm uses GAP interface package <Math>\texttt{qsopt}\_\texttt{ex-interface}</Math> <Cite Key="jayantqsint"/> to talk to
+Qsopt<Math>\_</Math>ex via standard input-output.
+</Chapter>
+

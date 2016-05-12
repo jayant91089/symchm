@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This is an automatically generated file. -->
+<Chapter Label="Chapter_Installation">
+<Heading>Installation</Heading>
+
+Assuming you already have GAP 4.5+ installed, you can follow the steps below to install the package:
+<List>
+<Item>
+To get the newest version of symchm, download the .zip archive from <URL>https://github.com/jayant91089/symchm</URL>
+and unpack it using <Math>\texttt{unzip symchm-x.y.zip}</Math> in the terminal.
+Do this preferably inside the <Math>pkg</Math> subdirectory
+of your GAP 4 installation. It creates a subdirectory called <Math>\texttt{qsopt}\_\texttt{ex-interface}</Math>.
+If you do not know the whereabouts of the <Math>pkg</Math> subdirectory, invoke the following in GAP:
+</Item>
+</List>
+<Listing Type="Code"><![CDATA[
+GAPInfo.("RootPaths");
+]]></Listing>
+
+Look for pkg directory inside any of the paths returned.
+<List>
+<Item>
+Once unpacked in the right directory, one can start using symchm by invoking
+</Item>
+</List>
+<Listing Type="Code"><![CDATA[
+LoadPackage( "symchm");
+]]></Listing>
+
+from within GAP. This will automatically load <Math>\texttt{qsopt}\_\texttt{ex-interface}</Math>, if it is available. If instead, it returns 'fail',
+make sure <Math>\texttt{qsopt}\_\texttt{ex-interface}</Math> is installed. See the package manual for <Math>\texttt{qsopt}\_\texttt{ex-interface}</Math> for
+details of how to install it.
+</Chapter>
+

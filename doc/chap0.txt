@@ -1,0 +1,37 @@
+  
+  
+                                    [1X symchm [101X
+  
+  
+                [1X A package for symmetric polyhedral projection [101X
+  
+  
+                                      1.0
+  
+  
+                                   05/11/2016
+  
+  
+                                  Jayant Apte
+  
+  
+  
+  Jayant Apte
+      Email:    [7Xmailto:jayant91089@gmail.com[107X
+      Homepage: [7Xhttps://sites.google.com/site/jayantapteshomepage/[107X
+      Address:  [33X[0;14YDepartment of Electrical and Computer Engineering[133X
+                [33X[0;14YDrexel University[133X
+                [33X[0;14YPhiladelphia, PA 19104[133X
+  
+  
+  
+  -------------------------------------------------------
+  
+  
+  [1XContents (symchm)[101X
+  
+  1 [33X[0;0YIntroduction[133X
+  2 [33X[0;0YInstallation[133X
+  
+  
+  [32X

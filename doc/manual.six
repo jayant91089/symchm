@@ -1,0 +1,20 @@
+#SIXFORMAT  GapDocGAP
+HELPBOOKINFOSIXTMP := rec(
+encoding := "UTF-8",
+bookname := "symchm",
+entries :=
+[ [ "Title page", ".", [ 0, 0, 0 ], 1, 1, "title page", "X7D2C85EC87DD46E5" ],
+  [ "Table of Contents", ".-1", [ 0, 0, 1 ], 29, 2, "table of contents", 
+      "X8537FEB07AF2BEC8" ], 
+  [ "\033[1X\033[33X\033[0;-2YIntroduction\033[133X\033[101X", "1", 
+      [ 1, 0, 0 ], 1, 3, "introduction", "X7DFB63A97E67C0A1" ], 
+  [ "\033[1X\033[33X\033[0;-2YInstallation\033[133X\033[101X", "2", 
+      [ 2, 0, 0 ], 1, 4, "installation", "X8360C04082558A12" ], 
+  [ "Bibliography", "bib", [ "Bib", 0, 0 ], 1, 5, "bibliography", 
+      "X7A6F98FD85F02BFE" ], 
+  [ "References", "bib", [ "Bib", 0, 0 ], 1, 5, "references", 
+      "X7A6F98FD85F02BFE" ], 
+  [ "Index", "ind", [ "Ind", 0, 0 ], 1, 6, "index", "X83A0356F839C696F" ], 
+  [ "\033[5Xsymchm\033[105X", ".-1", [ 0, 0, 1 ], 29, 2, "symchm", 
+      "X8537FEB07AF2BEC8" ] ]
+);

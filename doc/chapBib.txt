@@ -1,0 +1,15 @@
+  
+  
+  [1XReferences[101X
+  
+  [[20XApt15[120X]  [16XApte,  J.[116X, [17Xqsopt\textunderscoreex-interface - An Interface to QSopt
+  exact        LP       solver       -A       GAP4       Package[117X       (2015),
+  ((http://www.ece.drexel.edu/walsh/aspitrg/software.html)).
+  
+  [[20XACDE09[120X]  [16XDavid Applegate, , William Cook, , Sanjeeb Dash, and Espinoza, D.[116X,
+  [17XQSopt-ex  2.6  ---  A  computer  algebra  system for polynomial computations[117X
+  (2009).
+  
+  
+  
+  [32X

@@ -1,0 +1,14 @@
+\begin{thebibliography}{ACDE09}
+
+\bibitem[ACDE09]{qs}
+David Applegate, William Cook, Sanjeeb Dash, and Daniel Espinoza.
+\newblock {QSopt-ex} {2.6} --- {A} computer algebra system for polynomial
+  computations, 2009.
+
+\bibitem[Apt15]{jayantqsint}
+Jayant Apte.
+\newblock qsopt{\textunderscore}ex-interface - {An Interface to QSopt exact LP
+  solver -A GAP4 Package}, 2015.
+\newblock http://www.ece.drexel.edu/walsh/aspitrg/software.html.
+
+\end{thebibliography}
