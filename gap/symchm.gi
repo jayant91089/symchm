@@ -1,10 +1,10 @@
 ################################################################################
 ##
-##                                                 qsopt_ex-interface package
+##                                                      symchm package
 ##
-##  Copyright 2016,           Jayant Apte, Drexel University
+##  Copyright 2016,                    Jayant Apte, Drexel University
 ##
-##  The .gi file containing implementation part of the qsopt_ex-interface package.
+##  The .gi file containing implementation part of the symchm package.
 ##
 ################################################################################
 
@@ -397,7 +397,7 @@ od;
 for i in [1..Size(linrows)] do
   Append(linmat[i],[-b[linrows[i]]]);
 od;
-Display(linmat);
+#Display(linmat);
 return RankMat(linmat);
 end;
 
@@ -429,7 +429,7 @@ while true do
   round:=round+1;
   SolveQSLP(s,[2]);
   rlist:=GetQSLPsol_primal(s);
-  Display(Concatenation("primal round ", String(round)," ",String(rlist)));
+  #Display(Concatenation("primal round ", String(round)," ",String(rlist)));
   #WriteLine(s,"11");
   if rlist[3]>0 then
     FlushQSLP(s);
@@ -440,15 +440,15 @@ while true do
   fi;
   # deal with the in-between case
   rlist_dual:=GetQSLPsol_dual(s);
-  Display(Concatenation("dual round ", String(round)," ",String(rlist_dual)));
+  #Display(Concatenation("dual round ", String(round)," ",String(rlist_dual)));
   dual_opt:=rlist_dual[Size(rlist_dual)];
-  Display(rlist_dual);
+  #Display(rlist_dual);
   for i in [1..Size(dual_opt)] do
     if dual_opt[i]>0 then # tight inequality
       Append(linrows,[i]);
       linrows:=Unique(linrows);
       coef_rval:=ChangeQScoef(s,i,Size(A[1]),0);
-      Display(Concatenation("coef_rval:=",String(coef_rval)));
+      #Display(Concatenation("coef_rval:=",String(coef_rval)));
     fi;
   od;
   Append(linrows,FindDepEq(A,b,linrows));
@@ -472,7 +472,7 @@ local rlinmat,i,trlinmat,erec,row,eq,evar,embedidx,sub,Ae,be;
     Append(rlinmat[Size(rlinmat)],[b[i]]);
   od;
   trlinmat:=TriangulizedMat(rlinmat);
-  Display(trlinmat);
+  #Display(trlinmat);
   erec:=rec();
   for row in trlinmat do
     i:=Position(row,1);
@@ -663,6 +663,7 @@ od;
 return SortedCons(rnc);
 end;
 
+if not IsBound(NetSymGroup) then
 NetSymGroup:=function(NC)
 local N,Nx,c,G1,G;
 # clean NC
@@ -673,7 +674,7 @@ G1:=Stabilizer(SymmetricGroup(NC[3]),Nx,OnNCinstance);
 G:=Stabilizer(G1,[1..NC[2]],OnSets);
 return G;
 end;
-
+fi;
 
 
 NCShannonBounded:=function(ncinstance)
@@ -754,7 +755,8 @@ InitialHull:=function(A,b,k,qs_exec)
 # Ax<=b is inequality description
 # k is projection dimension
 # returns >= type homogeneous ineq
-local rlist,s,vlist,obj,i,hlist,vlistk;
+local rlist,s,vlist,obj,i,hlist,vlistk,nb_lpsolved;
+nb_lpsolved:=0;
 rlist:=LoadQSLP([],A,b,[],qs_exec);
 s:=rlist[1];
 vlist:=[];
@@ -762,12 +764,14 @@ vlistk:=[];
 #vtx 1
 LoadQSLPobj(s,Concatenation([1],ZeroMutable([1..Size(A)-1])));
 SolveQSLP(s,[]);
+nb_lpsolved:=nb_lpsolved+1;
 rlist:=GetQSLPsol_primal(s);
 Append(vlist,[Concatenation([1],rlist[5])]);
 Append(vlistk,[Concatenation([1],rlist[5]{[1..k]})]);
 # vtx 2
 LoadQSLPobj(s,Concatenation([-1],ZeroMutable([1..Size(A)-1])));
 SolveQSLP(s,[]);
+nb_lpsolved:=nb_lpsolved+1;
 rlist:=GetQSLPsol_primal(s);
 Append(vlist,[Concatenation([1],rlist[5])]);
 Append(vlistk,[Concatenation([1],rlist[5]{[1..k]})]);
@@ -775,6 +779,7 @@ while Size(vlist)<k+1 do
   obj:=hyperplane(vlist{[1..Size(vlist)]}{[2..Size(vlist[1])]},k);
   LoadQSLPobj(s,Concatenation(obj,ZeroMutable([1..Size(A)-Size(obj)])));
   SolveQSLP(s,[]);
+  nb_lpsolved:=nb_lpsolved+1;
   rlist:=GetQSLPsol_primal(s);
   if RankMat(Concatenation(vlistk,[Concatenation([1],rlist[5]{[1..k]})]))=Size(vlistk)+1  then
   Append(vlistk,[Concatenation([1],rlist[5]{[1..k]})]);
@@ -785,6 +790,7 @@ while Size(vlist)<k+1 do
   fi;
   LoadQSLPobj(s,Concatenation(-obj,ZeroMutable([1..Size(A)-Size(obj)])));
   SolveQSLP(s,[]);
+  nb_lpsolved:=nb_lpsolved+1;
   rlist:=GetQSLPsol_primal(s);
   if RankMat(Concatenation(vlistk,[Concatenation([1],rlist[5]{[1..k]})]))=Size(vlistk)+1  then
   Append(vlistk,[Concatenation([1],rlist[5]{[1..k]})]);
@@ -792,7 +798,7 @@ while Size(vlist)<k+1 do
   fi;
 od;
 hlist:=Inverse(TransposedMat(vlistk));
-return [s,vlistk,hlist];
+return [s,vlistk,hlist,nb_lpsolved];
 end;
 
 OnEntropySpace:=function(v,g)
@@ -879,6 +885,18 @@ IsTermFacet:=function(s,A,b,k,h,z)
   else
     return [false,rlist[5]];
   fi;
+end;
+
+NormalizeIneq:=function(ineq)
+  local x,i;
+  x:=1;
+  for i in [1..Size(ineq)] do
+    if not NumeratorRat(ineq[i])= 0 then
+      x:=AbsInt(ineq[i])/DenominatorRat(ineq[i]);
+      break;
+    fi;
+  od;
+  return ineq/x;
 end;
 
 Polarize:=function(V,H)
@@ -970,17 +988,7 @@ od;
 return [List(VRet,NormalizeIneq),List(HRet,NormalizeIneq),ZrecRet];
 end);
 
-NormalizeIneq:=function(ineq)
-  local x,i;
-  x:=1;
-  for i in [1..Size(ineq)] do
-    if not NumeratorRat(ineq[i])= 0 then
-      x:=AbsInt(ineq[i])/DenominatorRat(ineq[i]);
-      break;
-    fi;
-  od;
-  return ineq/x;
-end;
+
 
 # todo:
 # test, use erec, take arbitrary projdim, sym
@@ -1194,14 +1202,16 @@ symDDstep:=function(V,H,Zrec,hlist,k,G,erec,actfunH)
   # V is list of rays while H is list of normal vectors a s.t. ax<=0 is the ineq
   # hlist is a list normal vector of the new homogeneous inequalities to be added
   #! i.e.{h |  hx<=0} that are in the same orbit under symmetry group
-  local vx,rlist,Vp,Hp,r,hrays,badh,i,vtight1,vtight2,Hsub,Vsub,Zrecsub,v,h,Ix,j,hx,rlist2,x,Vret,badv,Hret,Zrecret,vxorb,vxg,edim,nedim,dim;
+  local vx,rlist,Vp,Hp,r,hrays,badh,i,vtight1,vtight2,Hsub,Vsub,Zrecsub,v,h,Ix,j,hx,rlist2,x,Vret,badv,Hret,Zrecret,vxorb,vxg,edim,nedim,dim,nb_stepsizelist;
+  nb_stepsizelist:=[];
+  Append(nb_stepsizelist,[Size(V)]);
   rlist:=DDstep(V,H,Zrec,hlist[1]);
   Vp:=rlist[1];
   Hp:=rlist[2];
   Zrec:=rlist[3];
   #Display(Zrec);
   if Size(hlist)>1 then
-    Display(["Extra permutations :",hlist{[2..Size(hlist)]}]);
+    #Display(["Extra permutations :",hlist{[2..Size(hlist)]}]);
     hrays:=[];
     for r in RecNamesInt(Zrec) do
       if Size(Hp) in Zrec.(r) then # hlist[1] is tight
@@ -1220,12 +1230,12 @@ symDDstep:=function(V,H,Zrec,hlist,k,G,erec,actfunH)
       od;
     od;
     if Size(badh)=0 then
-      return [Vp,Hp,Zrec];
+      return [Vp,Hp,Zrec,nb_stepsizelist];
     fi;
     # tighten hlist[1]
-    Display("After asymmetric DD step:");
-    Display(Vp);
-    Display(Hp);
+    #Display("After asymmetric DD step:");
+    #Display(Vp);
+    #Display(Hp);
     vtight1:=hrays;
     Hsub:=[];
     for h in Hp do
@@ -1260,12 +1270,13 @@ symDDstep:=function(V,H,Zrec,hlist,k,G,erec,actfunH)
       od;
     od;
     for x in badh do
+      Append(nb_stepsizelist,[Size(Vsub)]);
       rlist2:=DDstep(Vsub,Hsub,Zrecsub,hlist[x]{[2..Size(hlist[x])]}-hlist[x][1]*hlist[1]{[2..Size(hlist[1])]});
       Vsub:=rlist2[1];
       Hsub:=rlist2[2];
-      Display("Symmetric DD step");
-      Display(Vsub);
-      Display(Hsub);
+      #Display("Symmetric DD step");
+      #Display(Vsub);
+      #Display(Hsub);
       Zrecsub:=rlist2[3];
     od;
     # construct DD of the symmetric update:
@@ -1290,15 +1301,15 @@ symDDstep:=function(V,H,Zrec,hlist,k,G,erec,actfunH)
     od;
     nedim:=Difference([1..k],edim);
     for v in Vsub do
-      vx:=NormalizeIneq(Concatenation([-hlist[1]{[2..Size(hlist[1])]}*v],v));
-      vxorb:=Orbit(G,ExpandIneq(vx{[2..Size(vx)]},k,erec,[]),actfunH);
+      vx:=NormalizeIneq(Concatenation([-hlist[1]{[2..Size(hlist[1])]}*v],v)); # grow the vertex v
+      vxorb:=Orbit(G,ExpandIneq(vx{[2..Size(vx)]},k,erec,[]),actfunH); # compute orbit of vx using action on proj. ineq
       for vxg in vxorb do
-        if not NormalizeIneq(Concatenation([vx[1]],vxg{nedim})) in Vret then
+        if not NormalizeIneq(Concatenation([vx[1]],vxg{nedim})) in Vret then # add new permutations to Vret
           Append(Vret,[NormalizeIneq(Concatenation([vx[1]],vxg{nedim}))]);
         fi;
       od;
     od;
-    Hret:=Concatenation(H,hlist);
+    Hret:=Concatenation(H,hlist); # new ineqs simply augment H with hlist
     Zrecret:=rec();
     for i in [1..Size(Vret)] do
       Zrecret.(i):=[];
@@ -1308,25 +1319,44 @@ symDDstep:=function(V,H,Zrec,hlist,k,G,erec,actfunH)
         fi;
       od;
     od;
-    return [Vret,Hret,Zrecret];
+    return [Vret,Hret,Zrecret,nb_stepsizelist];
   else
-    return [Vp,Hp,Zrec];
+    return [Vp,Hp,Zrec,nb_stepsizelist];
   fi;
 end;
 
-symCHM:=function(A,b,linrows,k,G,actfunV,actfunH)
-local Vs,vlist,hlist,rlist3,rlist2,rlist1,rlist4,rlist5,rlist6,Vp,Ae,be,erec,redind,vs,bproc,Aproc,s,V,H,row,Hp,Zrec,term_h,allterm,h,Vret,Hret,v,linrows2,tcnt,vp,rlist;
+symCHM:=function(A,b,linrows,k,G,actfunV,actfunH,preproc)
+local Vs,vlist,hlist,rlist3,rlist2,rlist1,rlist4,rlist5,rlist6,Vp,Ae,be,erec,redind,vs,bproc,Aproc,nb_stepsizelist,i,
+s,V,H,row,Hp,Zrec,term_h,allterm,h,Vret,Hret,v,linrows2,tcnt,vp,rlist,nb_lpsolved,stats;
+  if preproc=true then
+    rlist3:=DimPolyQS(A,b,linrows,qs_exec);
+    linrows2:=rlist3[2];
+    rlist4:=EmbedPoly(A,b,linrows2);
+    Ae:=rlist4[1];
+    be:=rlist4[2];
+    erec:=rlist4[3];
+    k:=Size(Difference([1..k],RecNamesInt(erec))); # take care of eliminated proj variabels
+    redind:=RedundQS(Ae,be,[],qs_exec);
+    bproc:=be{Difference([1..Size(Ae)],redind)};
+    Aproc:=Ae{Difference([1..Size(Ae)],redind)};
+  else
+    Aproc:=[];
+    bproc:=[];
+    for i in [1..Size(A)] do
+      if i in linrows then
+        Append(Aproc,[A[i]]);
+        Append(bproc,[b[i]]);
+        Append(Aproc,[-A[i]]);
+        Append(bproc,[b[i]]);
+      else
+        Append(Aproc,[A[i]]);
+        Append(bproc,[b[i]]);
+      fi;
+    od;
+    erec:=rec();
+    redind:=[];
+  fi;
   Exec("date +%s.%N");
-  rlist3:=DimPolyQS(A,b,linrows,qs_exec);
-  linrows2:=rlist3[2];
-  rlist4:=EmbedPoly(A,b,linrows2);
-  Ae:=rlist4[1];
-  be:=rlist4[2];
-  erec:=rlist4[3];
-  k:=Size(Difference([1..k],RecNamesInt(erec))); # take care of eliminated proj variabels
-  redind:=RedundQS(Ae,be,[],qs_exec);
-  bproc:=be{Difference([1..Size(Ae)],redind)};
-  Aproc:=Ae{Difference([1..Size(Ae)],redind)};
   rlist1:=InitialHull(Aproc,bproc,k,qs_exec);
   s:=rlist1[1];
   # vertices of proj. polytope, original form
@@ -1336,24 +1366,28 @@ local Vs,vlist,hlist,rlist3,rlist2,rlist1,rlist4,rlist5,rlist6,Vp,Ae,be,erec,red
   for row in rlist1[3] do
    Append(H,[NormalizeIneq(Concatenation(-row{[2..Size(row)]},[row[1]]))]);
   od;
+  nb_lpsolved:=rlist1[4];
+  nb_stepsizelist:=[];
+  Display(["inithull LPs",nb_lpsolved]);
   #Display(V);
   #Display(H);
   rlist2:=Polarize(V,H);
   # polar form (used only for dd steps)
   Vp:=rlist2[1];
   Hp:=rlist2[2];
-  Display(Vp);
-  Display(Hp);
+  #Display(Vp);
+  #Display(Hp);
   Zrec:=rlist2[3];
   Vs:=SymmetrizeV(V,G,actfunV,k,erec);
   for v in Vs do
+    Append(nb_stepsizelist,[Size(Vp)]);
     rlist6:=DDstep(Vp,Hp,Zrec,Concatenation([1],v));
     Vp:=rlist6[1];
     Hp:=rlist6[2];
     Zrec:=rlist6[3];
   od;
-  Display(Vp);
-  Display(Hp);
+  #Display(Vp);
+  #Display(Hp);
   H:=[];
   for vp in Vp do
     Append(H,[NormalizeIneq(Concatenation(vp{[2..Size(vp)]},[-vp[1]]))]);
@@ -1365,13 +1399,14 @@ local Vs,vlist,hlist,rlist3,rlist2,rlist1,rlist4,rlist5,rlist6,Vp,Ae,be,erec,red
    allterm:=true;
    for h in H do # find a non-terminal facet
      if not h in term_h then # test
-        Display(["test facet", h]);
+        #Display(["test facet", h]);
        rlist5:=IsTermFacet(s,Aproc,bproc,k,h{[1..Size(h)-1]},h[Size(h)]);
+       nb_lpsolved:=nb_lpsolved+1;
        if rlist5[1]=true then
          Append(term_h,[h]);
        else
          tcnt:=tcnt+1;
-         Display(Concatenation("Non-term facet no.",String(tcnt), "New Vtx=" ,String(rlist5[2]{[1..k]})));
+         #Display(Concatenation("Non-term facet no.",String(tcnt), "New Vtx=" ,String(rlist5[2]{[1..k]})));
          allterm:=false;
          break;
        fi;
@@ -1391,8 +1426,9 @@ local Vs,vlist,hlist,rlist3,rlist2,rlist1,rlist4,rlist5,rlist6,Vp,Ae,be,erec,red
    Vp:=rlist6[1];
    Hp:=rlist6[2];
    Zrec:=rlist6[3];
-   Display(Vp);
-   Display(Hp);
+   Append(nb_stepsizelist,rlist6[4]);
+   #Display(Vp);
+   #Display(Hp);
    H:=[];
    for vp in Vp do
      Append(H,[NormalizeIneq(Concatenation(vp{[2..Size(vp)]},[-vp[1]]))]);
@@ -1410,5 +1446,59 @@ local Vs,vlist,hlist,rlist3,rlist2,rlist1,rlist4,rlist5,rlist6,Vp,Ae,be,erec,red
   od;
   FlushQSLP(s);
   Exec("date +%s.%N");
-  return [Vret,Hret];
+  stats:=[nb_lpsolved,nb_stepsizelist];
+  return [Vret,Hret,stats];
 end;
+
+# InitHull2transversal:=(Vp,Hp,actfunV,actfunH)
+#   # input polar DD pair, action function on vertices and ineq. of projection
+#   # construct transversal of polar verts
+#   for vp in Vp do
+#
+#   od;
+# end;
+
+# symCHM_transversal:=function(A,b,linrows,k,G,actfunV,actfunH)
+# local Vs,vlist,hlist,rlist3,rlist2,rlist1,rlist4,rlist5,rlist6,Vp,Ae,be,erec,redind,vs,bproc,Aproc,s,V,H,row,Hp,Zrec,term_h,allterm,h,Vret,Hret,v,linrows2,tcnt,vp,rlist;
+#   Exec("date +%s.%N");
+#   rlist3:=DimPolyQS(A,b,linrows,qs_exec);
+#   linrows2:=rlist3[2];
+#   rlist4:=EmbedPoly(A,b,linrows2);
+#   Ae:=rlist4[1];
+#   be:=rlist4[2];
+#   erec:=rlist4[3];
+#   k:=Size(Difference([1..k],RecNamesInt(erec))); # take care of eliminated proj variabels
+#   redind:=RedundQS(Ae,be,[],qs_exec);
+#   bproc:=be{Difference([1..Size(Ae)],redind)};
+#   Aproc:=Ae{Difference([1..Size(Ae)],redind)};
+#   rlist1:=InitialHull(Aproc,bproc,k,qs_exec);
+#   s:=rlist1[1];
+#   # vertices of proj. polytope, original form
+#   V:=rlist1[2]{[1..Size(rlist1[2])]}{[2..Size(rlist1[2][1])]};
+#   # facets of inner bound to proj. polytope, original form [a b] for ax<=b
+#   H:=[];
+#   for row in rlist1[3] do
+#    Append(H,[NormalizeIneq(Concatenation(-row{[2..Size(row)]},[row[1]]))]);
+#   od;
+#   #Display(V);
+#   #Display(H);
+#   rlist2:=Polarize(V,H);
+#   # polar form (used only for dd steps)
+#   Vp:=rlist2[1];
+#   Hp:=rlist2[2];
+#   #Display(Vp);
+#   #Display(Hp);
+#   Zrec:=rlist2[3];
+#   Vs:=SymmetrizeV(V,G,actfunV,k,erec);
+#   for v in Vs do
+#     rlist6:=DDstep(Vp,Hp,Zrec,Concatenation([1],v));
+#     Vp:=rlist6[1];
+#     Hp:=rlist6[2];
+#     Zrec:=rlist6[3];
+#   od;
+#   # construct transversal of Vp and Hp
+#   Display(Vp);
+#   Display(Hp);
+#   V:=Hp{[1..Size(Hp)]}{[2..Size(Hp[1])]};
+#   H:=
+# end;
