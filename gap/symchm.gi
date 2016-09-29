@@ -311,8 +311,6 @@ od;
 return [A,b];
 end;
 
-qs_exec:="/home/aspitrg3-users/jayant/qsopt_interface/dummy";
-
 IsZeroList:=function(list)
 local onemap,ones;
 onemap := function ( x ) return 1; end;
