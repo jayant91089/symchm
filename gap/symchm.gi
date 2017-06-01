@@ -33,6 +33,19 @@ RecNamesInt:=function(r)
 end;
 fi;
 
+if not IsBound(ListRat2Int) then
+ListRat2Int:=function(obj)
+  local m,r;
+  m:=1;
+  for r in obj do
+    if not r=0 then
+      m:=DenominatorRat(r)*m;
+    fi;
+  od;
+  return m*obj;
+end;
+fi;
+
 if not IsBound(skipline) then
 skipline:=function(str,i)
 local j;
@@ -253,7 +266,7 @@ RedundQS:= function(A,b,linrows,qs_exec)
   rlist:=LoadQSLP([],A,b,linrows,qs_exec);
   s:=rlist[1];
   for i in [1..Size(A)] do
-    LoadQSLPobj(s,A[i]);
+    LoadQSLPobj(s,ListRat2Int(A[i]));
     ChangeQSrhs(s,rowind.(i),b[i]+1);
     SolveQSLP(s,[]);
     rlist:=GetQSLPsol_primal(s);
@@ -775,7 +788,7 @@ Append(vlist,[Concatenation([1],rlist[5])]);
 Append(vlistk,[Concatenation([1],rlist[5]{[1..k]})]);
 while Size(vlist)<k+1 do
   obj:=hyperplane(vlist{[1..Size(vlist)]}{[2..Size(vlist[1])]},k);
-  LoadQSLPobj(s,Concatenation(obj,ZeroMutable([1..Size(A)-Size(obj)])));
+  LoadQSLPobj(s,Concatenation(ListRat2Int(obj),ZeroMutable([1..Size(A)-Size(obj)])));
   SolveQSLP(s,[]);
   nb_lpsolved:=nb_lpsolved+1;
   rlist:=GetQSLPsol_primal(s);
@@ -786,7 +799,7 @@ while Size(vlist)<k+1 do
   if not Size(vlist)<k+1 then
   break;
   fi;
-  LoadQSLPobj(s,Concatenation(-obj,ZeroMutable([1..Size(A)-Size(obj)])));
+  LoadQSLPobj(s,Concatenation(-ListRat2Int(obj),ZeroMutable([1..Size(A)-Size(obj)])));
   SolveQSLP(s,[]);
   nb_lpsolved:=nb_lpsolved+1;
   rlist:=GetQSLPsol_primal(s);
@@ -875,7 +888,7 @@ IsTermFacet:=function(s,A,b,k,h,z)
   # test facet hx<=b for being terminal for projection of
   # polytope associated with 's' onto first k co-ordinates
   local rlist;
-  LoadQSLPobj(s,Concatenation(h,ZeroMutable([1..Size(A[1])-Size(h)])));
+  LoadQSLPobj(s,Concatenation(ListRat2Int(h),ZeroMutable([1..Size(A[1])-Size(h)])));
   SolveQSLP(s,[]);
   rlist:=GetQSLPsol_primal(s);
   if rlist[3]<=z then
@@ -1366,7 +1379,7 @@ s,V,H,row,Hp,Zrec,term_h,allterm,h,Vret,Hret,v,linrows2,tcnt,vp,rlist,nb_lpsolve
   od;
   nb_lpsolved:=rlist1[4];
   nb_stepsizelist:=[];
-  Display(["inithull LPs",nb_lpsolved]);
+  #Display(["inithull LPs",nb_lpsolved]);
   #Display(V);
   #Display(H);
   rlist2:=Polarize(V,H);
